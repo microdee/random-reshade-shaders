@@ -1,0 +1,83 @@
+/** FastMotionBlur
+
+Fast and dead simple motion blur
+
+MIT License
+do whatever you want, i don't care
+
+Dead simple motion blur with 1..4 number of color samples + 2 bluenoise fetches
+Requires a motion vector provider using texMotionVectors before this shader
+you can choose between these public options afaik:
+
+* https://github.com/JakobPCoder/ReshadeMotionEstimation
+* https://gist.github.com/martymcmodding/69c775f844124ec2c71c37541801c053
+
+both look OK. surprisingly convincing in fact.
+
+ColorAndDither.fxh by Fubaxiusz (Jakub Maksymilian Fober) is used for blue-noise implementation
+*/
+
+#define MB_PASSES 4
+
+#include "ReShade.fxh"
+#include "ReShadeUI.fxh"
+#include "ColorAndDither.fxh"
+
+uniform uint framecount < source = "framecount"; >;
+
+uniform float Amount<
+	ui_type = "slider";
+	ui_min = 0; ui_max = 2.25;
+> = 1.666;
+
+texture texMotionVectors { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
+sampler sMotionVectorTex { Texture = texMotionVectors; };
+
+float4 mainVs(in uint id : SV_VertexID) : SV_Position
+{
+	const float2 vertexPos[3] = {
+		float2(-1f, 1f), // Top left
+		float2(-1f,-3f), // Bottom left
+		float2( 3f, 1f)  // Top right
+	};
+	return float4(vertexPos[id], 0f, 1f);
+}
+
+void getOutput(inout float3 output, float4 noiseIn, float2 uv, float2 pixelVel, int step)
+{
+	float noise = noiseIn[step%4u];
+	output += tex2Dlod(ReShade::BackBuffer, float4(uv - pixelVel * noise * Amount, 0, 0)).rgb / MB_PASSES;
+}
+
+float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
+{
+	uint2 pixelCoord = uint2(pixelPos.xy);
+	float2 uv = pixelPos.xy * float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
+	float2 vel = tex2Dfetch(sMotionVectorTex, pixelCoord).xy;
+	
+	uint offset = uint(4f*tex2Dfetch(BlueNoise::BlueNoiseTexSmp, pixelCoord/DITHER_SIZE_TEX%DITHER_SIZE_TEX).r);
+	offset += framecount;
+	float4 noise = tex2Dfetch(BlueNoise::BlueNoiseTexSmp, pixelCoord%DITHER_SIZE_TEX);
+	float3 output = 0;
+	getOutput(output, noise, uv, vel, offset + 0);
+	#if MB_PASSES > 1
+	getOutput(output, noise, uv, vel, offset + 1);
+	#endif
+	#if MB_PASSES > 2
+	getOutput(output, noise, uv, vel, offset + 2);
+	#endif
+	#if MB_PASSES > 3
+	getOutput(output, noise, uv, vel, offset + 3);
+	#endif
+	
+	return float4(output, 1);
+}
+
+technique FastMotionBlur
+{
+	pass MainPass
+	{
+		VertexShader = mainVs;
+		PixelShader = mainPs;
+	}
+}
