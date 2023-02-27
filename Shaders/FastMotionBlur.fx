@@ -23,6 +23,10 @@ ColorAndDither.fxh by Fubaxiusz (Jakub Maksymilian Fober) is used for blue-noise
 #include "ReShadeUI.fxh"
 #include "ColorAndDither.fxh"
 
+#ifndef FRAME_GATHER_COUNT
+	#define FRAME_GATHER_COUNT 1
+#endif
+
 uniform uint framecount < source = "framecount"; >;
 
 uniform float Amount<
@@ -32,6 +36,12 @@ uniform float Amount<
 
 texture texMotionVectors { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
 sampler sMotionVectorTex { Texture = texMotionVectors; };
+
+texture texOutput { Width = BUFFER_WIDTH;   Height = BUFFER_HEIGHT;   Format = RGBA8; MipLevels = 1; };
+sampler sOutput   { Texture = texOutput;   };
+
+texture texPresent { Width = BUFFER_WIDTH;   Height = BUFFER_HEIGHT;   Format = RGBA8; MipLevels = 1; };
+sampler sPresent   { Texture = texPresent;   };
 
 float4 mainVs(in uint id : SV_VertexID) : SV_Position
 {
@@ -47,6 +57,13 @@ void getOutput(inout float3 output, float4 noiseIn, float2 uv, float2 pixelVel, 
 {
 	float noise = noiseIn[step%4u];
 	output += tex2Dlod(ReShade::BackBuffer, float4(uv - pixelVel * noise * Amount, 0, 0)).rgb / MB_PASSES;
+}
+
+float4 clearPs(float4 pixelPos : SV_Position) : SV_Target
+{
+	int frameRef = framecount % FRAME_GATHER_COUNT;
+	if (frameRef != 0) discard;
+	return float4(0,0,0,1);
 }
 
 float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
@@ -70,14 +87,64 @@ float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
 	getOutput(output, noise, uv, vel, offset + 3);
 	#endif
 	
-	return float4(output, 1);
+	return float4(output / FRAME_GATHER_COUNT, 1);
+}
+
+float4 writePs(float4 pixelPos : SV_Position) : SV_Target
+{
+	int frameRef = (framecount - FRAME_GATHER_COUNT + 1) % FRAME_GATHER_COUNT;
+	if (frameRef != 0) discard;
+	uint2 pixelCoord = uint2(pixelPos.xy);
+	return float4(tex2Dfetch(sOutput, pixelCoord).rgb, 1);
+}
+
+float4 presentPs(float4 pixelPos : SV_Position) : SV_Target
+{
+	uint2 pixelCoord = uint2(pixelPos.xy);
+	return float4(tex2Dfetch(sPresent, pixelCoord).rgb, 1);
 }
 
 technique FastMotionBlur
 {
+#if FRAME_GATHER_COUNT <= 1
 	pass MainPass
 	{
 		VertexShader = mainVs;
 		PixelShader = mainPs;
 	}
+#else
+	pass ClearPass
+	{
+		VertexShader = mainVs;
+		PixelShader = clearPs;
+		RenderTarget = texOutput;
+		ClearRenderTargets = false;
+		GenerateMipMaps = false;
+	}
+	pass MainPass
+	{
+		VertexShader = mainVs;
+		PixelShader = mainPs;
+		RenderTarget = texOutput;
+		ClearRenderTargets = false;
+		GenerateMipMaps = false;
+		BlendEnable = true;
+		BlendOp = ADD;
+		SrcBlend = ONE;
+		DestBlend = ONE;
+	}
+	pass WritePass
+	{
+		VertexShader = mainVs;
+		PixelShader = writePs;
+		ClearRenderTargets = false;
+		GenerateMipMaps = false;
+		RenderTarget = texPresent;
+	}
+	pass PresentPass
+	{
+		VertexShader = mainVs;
+		PixelShader = presentPs;
+	}
+#endif
 }
