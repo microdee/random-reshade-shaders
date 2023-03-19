@@ -1,0 +1,60 @@
+[submodule "Misc/Vanilla"]
+	path = Misc/Vanilla
+	url = https://github.com/crosire/reshade-shaders.git
+	branch = slim
+[submodule "Misc/SweetFX"]
+	path = Misc/SweetFX
+	url = https://github.com/CeeJayDK/SweetFX.git
+	branch = master
+[submodule "Misc/qUINT_nightly"]
+	path = Misc/qUINT_nightly
+	url = https://github.com/martymcmodding/qUINT.git
+	branch = nightly
+[submodule "Misc/qUINT_master"]
+	path = Misc/qUINT_master
+	url = https://github.com/martymcmodding/qUINT.git
+	branch = master
+[submodule "Misc/prod80-ReShade-Repository"]
+	path = Misc/prod80-ReShade-Repository
+	url = https://github.com/prod80/prod80-ReShade-Repository.git
+	branch = master
+[submodule "Misc/AstrayFX"]
+	path = Misc/AstrayFX
+	url = https://github.com/BlueSkyDefender/AstrayFX.git
+	branch = master
+[submodule "Misc/OtisFX"]
+	path = Misc/OtisFX
+	url = https://github.com/FransBouma/OtisFX.git
+	branch = master
+[submodule "Misc/brussell1"]
+	path = Misc/brussell1
+	url = https://github.com/brussell1/Shaders.git
+	branch = master
+[submodule "Misc/Daodan"]
+	path = Misc/Daodan
+	url = https://github.com/Daodan317081/reshade-shaders.git
+	branch = master
+[submodule "Misc/fubax-shaders"]
+	path = Misc/fubax-shaders
+	url = https://github.com/Fubaxiusz/fubax-shaders.git
+	branch = master
+[submodule "Misc/Insane-Shaders"]
+	path = Misc/Insane-Shaders
+	url = https://github.com/LordOfLunacy/Insane-Shaders.git
+	branch = master
+[submodule "Misc/Luluco250_FXShaders"]
+	path = Misc/Luluco250_FXShaders
+	url = https://github.com/luluco250/FXShaders.git
+	branch = master
+[submodule "Misc/RSRetroArch"]
+	path = Misc/RSRetroArch
+	url = https://github.com/Matsilagi/RSRetroArch.git
+	branch = main
+[submodule "Misc/CobraFX"]
+	path = Misc/CobraFX
+	url = https://github.com/LordKobra/CobraFX.git
+	branch = master
+[submodule "Misc/crt-royale-reshade"]
+	path = Misc/crt-royale-reshade
+	url = https://github.com/akgunter/crt-royale-reshade.git
+	branch = master
