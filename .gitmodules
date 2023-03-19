@@ -58,3 +58,15 @@
 	path = Misc/crt-royale-reshade
 	url = https://github.com/akgunter/crt-royale-reshade.git
 	branch = master
+[submodule "Misc/reshade-unity-shaders"]
+	path = Misc/reshade-unity-shaders
+	url = https://github.com/microdee/reshade-unity-shaders.git
+	branch = new-reshade-version-compatibility
+[submodule "Misc/NiceGuy-Shaders"]
+	path = Misc/NiceGuy-Shaders
+	url = https://github.com/mj-ehsan/NiceGuy-Shaders.git
+	branch = main
+[submodule "Misc/AcerolaFX"]
+	path = Misc/AcerolaFX
+	url = https://github.com/GarrettGunnell/AcerolaFX.git
+	branch = main
