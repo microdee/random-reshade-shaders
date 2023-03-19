@@ -70,3 +70,7 @@
 	path = Misc/AcerolaFX
 	url = https://github.com/GarrettGunnell/AcerolaFX.git
 	branch = main
+[submodule "Misc/ReshadeMotionEstimation"]
+	path = Misc/ReshadeMotionEstimation
+	url = https://github.com/JakobPCoder/ReshadeMotionEstimation.git
+	branch = main
