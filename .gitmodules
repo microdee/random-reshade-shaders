@@ -74,3 +74,7 @@
 	path = Misc/ReshadeMotionEstimation
 	url = https://github.com/JakobPCoder/ReshadeMotionEstimation.git
 	branch = main
+[submodule "Misc/qUINT_motionvectors"]
+	path = Misc/qUINT_motionvectors
+	url = https://gist.github.com/69c775f844124ec2c71c37541801c053.git
+	branch = main
