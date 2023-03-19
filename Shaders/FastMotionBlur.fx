@@ -56,7 +56,7 @@ float4 mainVs(in uint id : SV_VertexID) : SV_Position
 void getOutput(inout float3 output, float4 noiseIn, float2 uv, float2 pixelVel, int step)
 {
 	float noise = noiseIn[step%4u];
-	output += tex2Dlod(ReShade::BackBuffer, float4(uv - pixelVel * noise * Amount, 0, 0)).rgb / MB_PASSES;
+	output += saturate(tex2Dlod(ReShade::BackBuffer, float4(uv - pixelVel * noise * Amount, 0, 0)).rgb) / MB_PASSES;
 }
 
 float4 clearPs(float4 pixelPos : SV_Position) : SV_Target
