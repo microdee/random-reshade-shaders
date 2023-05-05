@@ -78,3 +78,7 @@
 	path = Misc/qUINT_motionvectors
 	url = https://gist.github.com/69c775f844124ec2c71c37541801c053.git
 	branch = main
+[submodule "Misc/YASSGI"]
+	path = Misc/YASSGI
+	url = https://github.com/Pentalimbed/YASSGI.git
+	branch = main
