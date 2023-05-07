@@ -27,6 +27,10 @@ ColorAndDither.fxh by Fubaxiusz (Jakub Maksymilian Fober) is used for blue-noise
 	#define FRAME_GATHER_COUNT 1
 #endif
 
+#ifndef USE_MAX_BLENDING
+	#define USE_MAX_BLENDING 0
+#endif
+
 uniform uint framecount < source = "framecount"; >;
 
 uniform float Amount<
@@ -87,7 +91,11 @@ float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
 	getOutput(output, noise, uv, vel, offset + 3);
 	#endif
 	
+#if USE_MAX_BLENDING
+	return float4(output, 1);
+#else
 	return float4(output / FRAME_GATHER_COUNT, 1);
+#endif
 }
 
 float4 writePs(float4 pixelPos : SV_Position) : SV_Target
@@ -129,7 +137,11 @@ technique FastMotionBlur
 		ClearRenderTargets = false;
 		GenerateMipMaps = false;
 		BlendEnable = true;
+#if USE_MAX_BLENDING
+		BlendOp = MAX;
+#else
 		BlendOp = ADD;
+#endif
 		SrcBlend = ONE;
 		DestBlend = ONE;
 	}
