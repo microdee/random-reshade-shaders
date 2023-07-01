@@ -27,10 +27,6 @@ ColorAndDither.fxh by Fubaxiusz (Jakub Maksymilian Fober) is used for blue-noise
 	#define FRAME_GATHER_COUNT 1
 #endif
 
-#ifndef USE_MAX_BLENDING
-	#define USE_MAX_BLENDING 0
-#endif
-
 #ifndef USE_LAUNCHPAD
 	#define USE_LAUNCHPAD 0
 #endif
@@ -53,7 +49,7 @@ texture texMotionVectors { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format 
 sampler sMotionVectorTex { Texture = texMotionVectors; };
 #endif
 
-texture texOutput { Width = BUFFER_WIDTH;   Height = BUFFER_HEIGHT;   Format = RGBA8; MipLevels = 1; };
+texture texOutput { Width = BUFFER_WIDTH;   Height = BUFFER_HEIGHT;   Format = RGBA16F; MipLevels = 1; };
 sampler sOutput   { Texture = texOutput;   };
 
 texture texPresent { Width = BUFFER_WIDTH;   Height = BUFFER_HEIGHT;   Format = RGBA8; MipLevels = 1; };
@@ -85,6 +81,8 @@ float4 clearPs(float4 pixelPos : SV_Position) : SV_Target
 float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
 {
 	uint2 pixelCoord = uint2(pixelPos.xy);
+	int frameRef = framecount % FRAME_GATHER_COUNT;
+	
 	float2 uv = pixelPos.xy * float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
 	float2 vel = tex2Dfetch(sMotionVectorTex, pixelCoord).xy;
 	
@@ -103,11 +101,12 @@ float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
 	getOutput(output, noise, uv, vel, offset + 3);
 	#endif
 	
-#if USE_MAX_BLENDING
+	if (all(pixelCoord == uint2(0,0)))
+	{
+		return float4(1,1,1,1);
+	}
+	
 	return float4(output, 1);
-#else
-	return float4(output / FRAME_GATHER_COUNT, 1);
-#endif
 }
 
 float4 writePs(float4 pixelPos : SV_Position) : SV_Target
@@ -115,7 +114,8 @@ float4 writePs(float4 pixelPos : SV_Position) : SV_Target
 	int frameRef = (framecount - FRAME_GATHER_COUNT + 1) % FRAME_GATHER_COUNT;
 	if (frameRef != 0) discard;
 	uint2 pixelCoord = uint2(pixelPos.xy);
-	return float4(tex2Dfetch(sOutput, pixelCoord).rgb, 1);
+	float counter = tex2Dfetch(sOutput, uint2(0,0)).r;
+	return float4(tex2Dfetch(sOutput, pixelCoord).rgb / counter, 1);
 }
 
 float4 presentPs(float4 pixelPos : SV_Position) : SV_Target
@@ -149,11 +149,7 @@ technique FastMotionBlur
 		ClearRenderTargets = false;
 		GenerateMipMaps = false;
 		BlendEnable = true;
-#if USE_MAX_BLENDING
-		BlendOp = MAX;
-#else
 		BlendOp = ADD;
-#endif
 		SrcBlend = ONE;
 		DestBlend = ONE;
 	}
