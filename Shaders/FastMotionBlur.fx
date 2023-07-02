@@ -9,10 +9,9 @@ Dead simple motion blur with 1..4 number of color samples + 2 bluenoise fetches
 Requires a motion vector provider using texMotionVectors before this shader
 you can choose between these public options afaik:
 
+* https://github.com/martymcmodding/iMMERSE/blob/main/Shaders/MartysMods_LAUNCHPAD.fx
 * https://github.com/JakobPCoder/ReshadeMotionEstimation
 * https://gist.github.com/martymcmodding/69c775f844124ec2c71c37541801c053
-
-both look OK. surprisingly convincing in fact.
 
 ColorAndDither.fxh by Fubaxiusz (Jakub Maksymilian Fober) is used for blue-noise implementation
 */
@@ -24,11 +23,11 @@ ColorAndDither.fxh by Fubaxiusz (Jakub Maksymilian Fober) is used for blue-noise
 #include "ColorAndDither.fxh"
 
 #ifndef FRAME_GATHER_COUNT
-	#define FRAME_GATHER_COUNT 1
+#define FRAME_GATHER_COUNT 1
 #endif
 
 #ifndef USE_LAUNCHPAD
-	#define USE_LAUNCHPAD 0
+#define USE_LAUNCHPAD 1
 #endif
 
 uniform uint framecount < source = "framecount"; >;
@@ -36,7 +35,7 @@ uniform uint framecount < source = "framecount"; >;
 uniform float Amount<
 	ui_type = "slider";
 	ui_min = 0; ui_max = 2.25;
-> = 1.666;
+> = 2;
 
 #if USE_LAUNCHPAD
 namespace Deferred 
@@ -121,6 +120,10 @@ float4 writePs(float4 pixelPos : SV_Position) : SV_Target
 float4 presentPs(float4 pixelPos : SV_Position) : SV_Target
 {
 	uint2 pixelCoord = uint2(pixelPos.xy);
+	if (all(pixelCoord == uint2(0,0)))
+	{
+		return tex2Dfetch(ReShade::BackBuffer, uint2(0,0));
+	}
 	return float4(tex2Dfetch(sPresent, pixelCoord).rgb, 1);
 }
 
