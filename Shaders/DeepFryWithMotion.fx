@@ -211,7 +211,7 @@ void VerticalPS1(float4 vpos : SV_Position, float2 texcoord : TEXCOORD, out floa
 	output.w = 1;
 }
 
-technique DeepFry <ui_tooltip = "A simple shader that uses JPEG DCT quantization, \n"
+technique DeepFryWithMotion <ui_tooltip = "A simple shader that uses JPEG DCT quantization, \n"
 								"and turns up the reds in the image to create a \n"
 								"deep fried meme effect.\n\n"
 								"Part of Insane Shaders\n"
