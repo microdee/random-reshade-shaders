@@ -112,8 +112,9 @@ float4 writePs(float4 pixelPos : SV_Position) : SV_Target
 {
 	int frameRef = (framecount - FRAME_GATHER_COUNT + 1) % FRAME_GATHER_COUNT;
 	if (frameRef != 0) discard;
-	uint2 pixelCoord = uint2(pixelPos.xy);
 	float counter = tex2Dfetch(sOutput, uint2(0,0)).r;
+	// if (counter < FRAME_GATHER_COUNT) discard;
+	uint2 pixelCoord = uint2(pixelPos.xy);
 	return float4(tex2Dfetch(sOutput, pixelCoord).rgb / counter, 1);
 }
 
