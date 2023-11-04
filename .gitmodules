@@ -82,3 +82,7 @@
 	path = Misc/iMMERSE
 	url = https://github.com/martymcmodding/iMMERSE.git
 	branch = main
+[submodule "Misc/AgXc"]
+	path = Misc/AgXc
+	url = https://github.com/MrLixm/AgXc.git
+	branch = main
