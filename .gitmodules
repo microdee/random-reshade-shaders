@@ -86,3 +86,7 @@
 	path = Misc/AgXc
 	url = https://github.com/MrLixm/AgXc.git
 	branch = main
+[submodule "Misc/METEOR"]
+	path = Misc/METEOR
+	url = https://github.com/martymcmodding/METEOR.git
+	branch = main
