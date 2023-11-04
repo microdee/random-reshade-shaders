@@ -6,10 +6,6 @@
 	path = Misc/SweetFX
 	url = https://github.com/CeeJayDK/SweetFX.git
 	branch = master
-[submodule "Misc/qUINT_nightly"]
-	path = Misc/qUINT_nightly
-	url = https://github.com/martymcmodding/qUINT.git
-	branch = nightly
 [submodule "Misc/qUINT_master"]
 	path = Misc/qUINT_master
 	url = https://github.com/martymcmodding/qUINT.git
