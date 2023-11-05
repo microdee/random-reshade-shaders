@@ -90,3 +90,7 @@
 	path = Misc/METEOR
 	url = https://github.com/martymcmodding/METEOR.git
 	branch = main
+[submodule "Misc/CShade"]
+	path = Misc/CShade
+	url = https://github.com/papadanku/CShade.git
+	branch = main
