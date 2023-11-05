@@ -1,9 +1,10 @@
 $outpudDir = "$PSScriptRoot\reshade-shaders";
-rmdir $outpudDir -Recurse -Force -ErrorAction Stop
+Remove-Item $outpudDir -Recurse -Force -ErrorAction Stop
 mkdir $outpudDir -ErrorAction SilentlyContinue
 
 $shaderDirs = `
-  "$PSScriptRoot\AcerolaFX\Shaders" `
+  "$PSScriptRoot\Vanilla\Shaders" `
+, "$PSScriptRoot\AcerolaFX\Shaders" `
 , "$PSScriptRoot\AgXc\reshade\reshade-shaders\Shaders" `
 , "$PSScriptRoot\AstrayFX\Shaders" `
 , "$PSScriptRoot\brussell1\Shaders" `
@@ -20,10 +21,7 @@ $shaderDirs = `
 , "$PSScriptRoot\OtisFX\Shaders" `
 , "$PSScriptRoot\Private\ImmersePro\Shaders" `
 , "$PSScriptRoot\Private\ImmerseUltimate\Shaders" `
-, "$PSScriptRoot\Private\PhysicalDOF\Shaders" `
-, "$PSScriptRoot\Private\ReGrade\Shaders" `
 , "$PSScriptRoot\Private\ReLight\Shaders" `
-, "$PSScriptRoot\Private\RTGI\Shaders" `
 , "$PSScriptRoot\Private\YACA22\Shaders" `
 , "$PSScriptRoot\Private\qUINT_voxel" `
 , "$PSScriptRoot\prod80-ReShade-Repository\Shaders" `
@@ -33,12 +31,12 @@ $shaderDirs = `
 , "$PSScriptRoot\ReshadeMotionEstimation" `
 , "$PSScriptRoot\RSRetroArch\Shaders" `
 , "$PSScriptRoot\SweetFX\Shaders" `
-, "$PSScriptRoot\Vanilla\Shaders" `
 , "$PSScriptRoot\YASSGI\Shaders" `
 , "$PSScriptRoot\..\Shaders"
 
 $textureDirs = `
-  "$PSScriptRoot\AcerolaFX\Textures" `
+  "$PSScriptRoot\Vanilla\Textures" `
+, "$PSScriptRoot\AcerolaFX\Textures" `
 , "$PSScriptRoot\AgXc\reshade\reshade-shaders\Textures" `
 , "$PSScriptRoot\AstrayFX\Textures" `
 , "$PSScriptRoot\brussell1\Textures" `
@@ -53,33 +51,34 @@ $textureDirs = `
 , "$PSScriptRoot\Private\ImmersePro\Textures" `
 , "$PSScriptRoot\Private\ImmerseUltimate\Textures" `
 , "$PSScriptRoot\Private\ReLight\Textures" `
-, "$PSScriptRoot\Private\RTGI\Textures" `
 , "$PSScriptRoot\Private\YACA22\Textures" `
 , "$PSScriptRoot\prod80-ReShade-Repository\Textures" `
 , "$PSScriptRoot\reshade-unity-shaders\Textures" `
 , "$PSScriptRoot\RSRetroArch\Textures" `
 , "$PSScriptRoot\SweetFX\Textures" `
-, "$PSScriptRoot\Vanilla\Textures" `
 , "$PSScriptRoot\YASSGI\Textures" `
 , "$PSScriptRoot\..\Textures"
 
 function Merge-Links {
     param (
         [string[]] $Folders,
-        [string] $Subfolder
+        [string] $Output
     )
-    mkdir "$outpudDir\$Subfolder" -ErrorAction SilentlyContinue
+    mkdir $Output -ErrorAction SilentlyContinue
     $Folders | ForEach-Object {
         if (Test-Path $_) {
             Write-Output "Processing $_"
-            Get-ChildItem $_ | ForEach-Object {
-                $target = "$outpudDir\$Subfolder\$($_.Name)";
+            Get-ChildItem $_ -File | ForEach-Object {
+                $target = "$Output\$($_.Name)";
                 if (Test-Path $target) {
                     Write-Warning "$($_.Name) is already linked. Ignoring new one. If they're mismatched this might be a problem";
                 }
                 else {
                     New-Item -Path $target -ItemType SymbolicLink -Value $_.FullName
                 }
+            }
+            Get-ChildItem $_ -Directory | ForEach-Object {
+                Merge-Links $_.FullName "$Output\$($_.Name)"
             }
         }
         else {
@@ -88,5 +87,5 @@ function Merge-Links {
     }
 }
 
-Merge-Links $shaderDirs "Shaders"
-Merge-Links $textureDirs "Textures"
+Merge-Links $shaderDirs "$outpudDir\Shaders"
+Merge-Links $textureDirs "$outpudDir\Textures"
