@@ -30,6 +30,9 @@ ColorAndDither.fxh by Fubaxiusz (Jakub Maksymilian Fober) is used for blue-noise
 #define USE_LAUNCHPAD 1
 #endif
 
+#define IS_MULTI_FRAME FRAME_GATHER_COUNT > 1
+#define IS_SINGLE_FRAME FRAME_GATHER_COUNT <= 1
+
 uniform uint framecount < source = "framecount"; >;
 
 uniform float Amount<
@@ -40,7 +43,7 @@ uniform float Amount<
 #if USE_LAUNCHPAD
 namespace Deferred 
 {
-texture MotionVectorsTex { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
+	texture MotionVectorsTex { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
 }
 sampler sMotionVectorTex { Texture = Deferred::MotionVectorsTex; };
 #else
@@ -80,7 +83,6 @@ float4 clearPs(float4 pixelPos : SV_Position) : SV_Target
 float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
 {
 	uint2 pixelCoord = uint2(pixelPos.xy);
-	int frameRef = framecount % FRAME_GATHER_COUNT;
 	
 	float2 uv = pixelPos.xy * float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
 	float2 vel = tex2Dfetch(sMotionVectorTex, pixelCoord).xy;
@@ -130,7 +132,7 @@ float4 presentPs(float4 pixelPos : SV_Position) : SV_Target
 
 technique FastMotionBlur
 {
-#if FRAME_GATHER_COUNT <= 1
+#if IS_SINGLE_FRAME
 	pass MainPass
 	{
 		VertexShader = mainVs;
