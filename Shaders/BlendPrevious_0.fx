@@ -11,8 +11,20 @@ do whatever you want, i don't care
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
 
+#define BLEND_ID 0
+
+#if !defined(REUSE_TARGET)
+#define REUSE_TARGET 1
+#endif
+
 #ifndef BLEND_TEXTURE_NAME
+
+#if REUSE_TARGET
 #define BLEND_TEXTURE_NAME BlendTex_0
+#else
+#define __BLEND_TEXTURE_NAME(id) BlendTex_##id
+#define BLEND_TEXTURE_NAME __BLEND_TEXTURE_NAME(BLEND_ID)
+#endif
 #endif
 
 uniform int BlendMode <
