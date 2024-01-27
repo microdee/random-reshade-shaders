@@ -23,10 +23,8 @@ $shaderDirs = `
 , "$PSScriptRoot\Private\ImmerseUltimate\Shaders" `
 , "$PSScriptRoot\Private\ReLight\Shaders" `
 , "$PSScriptRoot\Private\YACA22\Shaders" `
-, "$PSScriptRoot\Private\qUINT_voxel" `
-, "$PSScriptRoot\prod80-ReShade-Repository\Shaders" `
-, "$PSScriptRoot\qUINT_master\Shaders" `
 , "$PSScriptRoot\qUINT_motionvectors" `
+, "$PSScriptRoot\prod80-ReShade-Repository\Shaders" `
 , "$PSScriptRoot\reshade-unity-shaders\Shaders" `
 , "$PSScriptRoot\ReshadeMotionEstimation" `
 , "$PSScriptRoot\RSRetroArch\Shaders" `
