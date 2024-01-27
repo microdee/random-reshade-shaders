@@ -40,8 +40,8 @@
 	branch = master
 [submodule "Misc/Luluco250_FXShaders"]
 	path = Misc/Luluco250_FXShaders
-	url = https://github.com/luluco250/FXShaders.git
-	branch = master
+	url = https://github.com/microdee/FXShaders.git
+	branch = microdee/lab-offset
 [submodule "Misc/RSRetroArch"]
 	path = Misc/RSRetroArch
 	url = https://github.com/Matsilagi/RSRetroArch.git
@@ -60,8 +60,8 @@
 	branch = new-reshade-version-compatibility
 [submodule "Misc/NiceGuy-Shaders"]
 	path = Misc/NiceGuy-Shaders
-	url = https://github.com/mj-ehsan/NiceGuy-Shaders.git
-	branch = main
+	url = https://github.com/microdee/NiceGuy-Shaders.git
+	branch = feature/launchpad-support
 [submodule "Misc/AcerolaFX"]
 	path = Misc/AcerolaFX
 	url = https://github.com/GarrettGunnell/AcerolaFX.git
@@ -80,8 +80,8 @@
 	branch = main
 [submodule "Misc/iMMERSE"]
 	path = Misc/iMMERSE
-	url = https://github.com/martymcmodding/iMMERSE.git
-	branch = main
+	url = https://github.com/microdee/iMMERSE.git
+	branch = microdee/restore-previous-launchpad
 [submodule "Misc/AgXc"]
 	path = Misc/AgXc
 	url = https://github.com/MrLixm/AgXc.git
@@ -92,5 +92,5 @@
 	branch = main
 [submodule "Misc/CShade"]
 	path = Misc/CShade
-	url = https://github.com/papadanku/CShade.git
-	branch = main
+	url = https://github.com/microdee/CShade.git
+	branch = microdee/init
