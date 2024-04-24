@@ -3,7 +3,8 @@ Remove-Item $outpudDir -Recurse -Force -ErrorAction Stop
 mkdir $outpudDir -ErrorAction SilentlyContinue
 
 $shaderDirs = `
-  "$PSScriptRoot\Vanilla\Shaders" `
+  "$PSScriptRoot\..\Shaders" `
+, "$PSScriptRoot\Vanilla\Shaders" `
 , "$PSScriptRoot\AcerolaFX\Shaders" `
 , "$PSScriptRoot\AgXc\reshade\reshade-shaders\Shaders" `
 , "$PSScriptRoot\AstrayFX\Shaders" `
@@ -19,21 +20,18 @@ $shaderDirs = `
 , "$PSScriptRoot\METEOR\Shaders" `
 , "$PSScriptRoot\NiceGuy-Shaders\Shaders" `
 , "$PSScriptRoot\OtisFX\Shaders" `
-, "$PSScriptRoot\Private\ImmersePro\Shaders" `
 , "$PSScriptRoot\Private\ImmerseUltimate\Shaders" `
-, "$PSScriptRoot\Private\ReLight\Shaders" `
-, "$PSScriptRoot\Private\YACA22\Shaders" `
 , "$PSScriptRoot\qUINT_motionvectors" `
 , "$PSScriptRoot\prod80-ReShade-Repository\Shaders" `
 , "$PSScriptRoot\reshade-unity-shaders\Shaders" `
 , "$PSScriptRoot\ReshadeMotionEstimation" `
 , "$PSScriptRoot\RSRetroArch\Shaders" `
 , "$PSScriptRoot\SweetFX\Shaders" `
-, "$PSScriptRoot\YASSGI\Shaders" `
-, "$PSScriptRoot\..\Shaders"
+, "$PSScriptRoot\YASSGI\Shaders"
 
 $textureDirs = `
-  "$PSScriptRoot\Vanilla\Textures" `
+  "$PSScriptRoot\..\Textures" `
+, "$PSScriptRoot\Vanilla\Textures" `
 , "$PSScriptRoot\AcerolaFX\Textures" `
 , "$PSScriptRoot\AgXc\reshade\reshade-shaders\Textures" `
 , "$PSScriptRoot\AstrayFX\Textures" `
@@ -46,16 +44,12 @@ $textureDirs = `
 , "$PSScriptRoot\METEOR\Textures" `
 , "$PSScriptRoot\NiceGuy-Shaders\Textures" `
 , "$PSScriptRoot\OtisFX\Textures" `
-, "$PSScriptRoot\Private\ImmersePro\Textures" `
 , "$PSScriptRoot\Private\ImmerseUltimate\Textures" `
-, "$PSScriptRoot\Private\ReLight\Textures" `
-, "$PSScriptRoot\Private\YACA22\Textures" `
 , "$PSScriptRoot\prod80-ReShade-Repository\Textures" `
 , "$PSScriptRoot\reshade-unity-shaders\Textures" `
 , "$PSScriptRoot\RSRetroArch\Textures" `
 , "$PSScriptRoot\SweetFX\Textures" `
-, "$PSScriptRoot\YASSGI\Textures" `
-, "$PSScriptRoot\..\Textures"
+, "$PSScriptRoot\YASSGI\Textures"
 
 function Merge-Links {
     param (
