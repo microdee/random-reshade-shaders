@@ -22,6 +22,17 @@ ColorAndDither.fxh by Fubaxiusz (Jakub Maksymilian Fober) is used for blue-noise
 #include "ReShadeUI.fxh"
 #include "ColorAndDither.fxh"
 
+/**
+ * Multi-threaded rendering might not give accurate framecount source from reshade,
+ * in that case set FRAME_COUNTER_SOURCE to 1 otherwise you might experience micro-stutters
+ * However single-threaded rendering is stable with Reshade sourced framecount (0)
+ * 0: < source = "framecount"; >
+ * 1: top-left pixel
+ */
+#ifndef FRAME_COUNTER_SOURCE
+#define FRAME_COUNTER_SOURCE 1
+#endif
+
 #ifndef FRAME_GATHER_COUNT
 #define FRAME_GATHER_COUNT 1
 #endif
@@ -33,7 +44,7 @@ ColorAndDither.fxh by Fubaxiusz (Jakub Maksymilian Fober) is used for blue-noise
 #define IS_MULTI_FRAME FRAME_GATHER_COUNT > 1
 #define IS_SINGLE_FRAME FRAME_GATHER_COUNT <= 1
 
-uniform uint framecount < source = "framecount"; >;
+uniform uint rsFramecount < source = "framecount"; >;
 
 uniform float Amount<
 	ui_type = "slider";
@@ -57,6 +68,15 @@ sampler sOutput   { Texture = texOutput;   };
 texture texPresent { Width = BUFFER_WIDTH;   Height = BUFFER_HEIGHT;   Format = RGBA8; MipLevels = 1; };
 sampler sPresent   { Texture = texPresent;   };
 
+int framecount()
+{
+#if FRAME_COUNTER_SOURCE
+	return ((int) floor(tex2Dfetch(sOutput, uint2(0,0)).r)) % FRAME_GATHER_COUNT;
+#else
+	return rsFramecount % FRAME_GATHER_COUNT;
+#endif
+}
+
 float4 mainVs(in uint id : SV_VertexID) : SV_Position
 {
 	const float2 vertexPos[3] = {
@@ -75,7 +95,7 @@ void getOutput(inout float3 output, float4 noiseIn, float2 uv, float2 pixelVel, 
 
 float4 clearPs(float4 pixelPos : SV_Position) : SV_Target
 {
-	int frameRef = framecount % FRAME_GATHER_COUNT;
+	int frameRef = framecount();
 	if (frameRef != 0) discard;
 	return float4(0,0,0,1);
 }
@@ -88,7 +108,7 @@ float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
 	float2 vel = tex2Dfetch(sMotionVectorTex, pixelCoord).xy;
 	
 	uint offset = uint(4f*tex2Dfetch(BlueNoise::BlueNoiseTexSmp, pixelCoord/DITHER_SIZE_TEX%DITHER_SIZE_TEX).r);
-	offset += framecount;
+	offset += rsFramecount;
 	float4 noise = tex2Dfetch(BlueNoise::BlueNoiseTexSmp, pixelCoord%DITHER_SIZE_TEX);
 	float3 output = 0;
 	getOutput(output, noise, uv, vel, offset + 0);
@@ -112,8 +132,8 @@ float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
 
 float4 writePs(float4 pixelPos : SV_Position) : SV_Target
 {
-	int frameRef = (framecount - FRAME_GATHER_COUNT + 1) % FRAME_GATHER_COUNT;
-	if (frameRef != 0) discard;
+	int frameRef = framecount();
+	if (frameRef != (FRAME_GATHER_COUNT - 1)) discard;
 	float counter = tex2Dfetch(sOutput, uint2(0,0)).r;
 	// if (counter < FRAME_GATHER_COUNT) discard;
 	uint2 pixelCoord = uint2(pixelPos.xy);
