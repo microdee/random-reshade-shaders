@@ -22,16 +22,7 @@ ColorAndDither.fxh by Fubaxiusz (Jakub Maksymilian Fober) is used for blue-noise
 #include "ReShadeUI.fxh"
 #include "ColorAndDither.fxh"
 
-/**
- * Multi-threaded rendering might not give accurate framecount source from reshade,
- * in that case set FRAME_COUNTER_SOURCE to 1 otherwise you might experience micro-stutters
- * However single-threaded rendering is stable with Reshade sourced framecount (0)
- * 0: < source = "framecount"; >
- * 1: top-left pixel
- */
-#ifndef FRAME_COUNTER_SOURCE
-#define FRAME_COUNTER_SOURCE 1
-#endif
+#define FRAME_COUNTER_SOURCE __RENDERER__ >= 0xb000
 
 #ifndef FRAME_GATHER_COUNT
 #define FRAME_GATHER_COUNT 1
@@ -68,15 +59,22 @@ sampler sOutput   { Texture = texOutput;   };
 texture texPresent { Width = BUFFER_WIDTH;   Height = BUFFER_HEIGHT;   Format = RGBA8; MipLevels = 1; };
 sampler sPresent   { Texture = texPresent;   };
 
+#if FRAME_COUNTER_SOURCE
+texture1D texCounter { Width = 1; Format = R32I; MipLevels = 1; };
+storage1D<int> storCounter   { Texture = texCounter; };
+sampler1D<int> sCounter   { Texture = texCounter; SRGBTexture = false; };
+#endif
+
 int framecount()
 {
 #if FRAME_COUNTER_SOURCE
-	return ((int) floor(tex2Dfetch(sOutput, uint2(0,0)).r)) % FRAME_GATHER_COUNT;
+	return tex1Dfetch(sCounter, 0) % FRAME_GATHER_COUNT;
 #else
 	return rsFramecount % FRAME_GATHER_COUNT;
 #endif
 }
 
+[shader("vertex")]
 float4 mainVs(in uint id : SV_VertexID) : SV_Position
 {
 	const float2 vertexPos[3] = {
@@ -93,6 +91,19 @@ void getOutput(inout float3 output, float4 noiseIn, float2 uv, float2 pixelVel, 
 	output += saturate(tex2Dlod(ReShade::BackBuffer, float4(uv - pixelVel * noise * Amount, 0, 0)).rgb) / MB_PASSES;
 }
 
+#if FRAME_COUNTER_SOURCE
+
+[shader("compute")]
+[numthreads(1, 1, 1)]
+void countCs(uint3 tid : SV_GroupThreadID)
+{
+	int c = tex1Dfetch(storCounter, 0) + 1;
+	tex1Dstore(storCounter, 0, c);
+}
+
+#endif
+
+[shader("pixel")]
 float4 clearPs(float4 pixelPos : SV_Position) : SV_Target
 {
 	int frameRef = framecount();
@@ -100,6 +111,7 @@ float4 clearPs(float4 pixelPos : SV_Position) : SV_Target
 	return float4(0,0,0,1);
 }
 
+[shader("pixel")]
 float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
 {
 	uint2 pixelCoord = uint2(pixelPos.xy);
@@ -130,6 +142,7 @@ float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
 	return float4(output, 1);
 }
 
+[shader("pixel")]
 float4 writePs(float4 pixelPos : SV_Position) : SV_Target
 {
 	int frameRef = framecount();
@@ -140,6 +153,7 @@ float4 writePs(float4 pixelPos : SV_Position) : SV_Target
 	return float4(tex2Dfetch(sOutput, pixelCoord).rgb / counter, 1);
 }
 
+[shader("pixel")]
 float4 presentPs(float4 pixelPos : SV_Position) : SV_Target
 {
 	uint2 pixelCoord = uint2(pixelPos.xy);
@@ -159,6 +173,15 @@ technique FastMotionBlur
 		PixelShader = mainPs;
 	}
 #else
+#if FRAME_COUNTER_SOURCE
+	pass CountPass
+	{
+		DispatchSizeX = 1;
+		DispatchSizeY = 1;
+		DispatchSizeZ = 1;
+		ComputeShader = countCs<1,1,1>;
+	}
+#endif
 	pass ClearPass
 	{
 		VertexShader = mainVs;
