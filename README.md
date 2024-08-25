@@ -37,6 +37,15 @@ Velocity calculation (or optical flow) is not included, other awesome people hav
 
 Generally it also does a good job at sprite-flames/sprite-smoke/sprite-splashes or other particle effects, especially on older games where their motion is not considered in their design.
 
+## Smearing
+
+Motion based distortion effect for emulating a certain style of smearing from animation (streaks distortion). Can be used in tandem with `FastMotionBlur.fx`
+
+**Anger Foot**
+
+![](Docs/AngerFoot-0.jpg)
+![](Docs/AngerFoot-1.jpg)
+
 ## BlendPrevious[0..4].fx
 
 Blend current color buffer with a previously saved state in the ReShade post-process pipeline. 'Nuf said.
