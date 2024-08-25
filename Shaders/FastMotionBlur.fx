@@ -9,9 +9,15 @@ Dead simple motion blur with 1..4 number of color samples + 2 bluenoise fetches
 Requires a motion vector provider using texMotionVectors before this shader
 you can choose between these public options afaik:
 
+* https://github.com/microdee/iMMERSE/blob/microdee/restore-previous-launchpad/Shaders/MartysMods_VELOCITY.fx
+  * USE_OLD_LAUNCHPAD_VELOCITY
+
 * https://github.com/martymcmodding/iMMERSE/blob/main/Shaders/MartysMods_LAUNCHPAD.fx
-* https://github.com/JakobPCoder/ReshadeMotionEstimation
-* https://gist.github.com/martymcmodding/69c775f844124ec2c71c37541801c053
+  * USE_LAUNCHPAD
+
+* Legacy:
+  * https://github.com/JakobPCoder/ReshadeMotionEstimation
+  * https://gist.github.com/martymcmodding/69c775f844124ec2c71c37541801c053
 
 ColorAndDither.fxh by Fubaxiusz (Jakub Maksymilian Fober) is used for blue-noise implementation
 */
@@ -28,8 +34,8 @@ ColorAndDither.fxh by Fubaxiusz (Jakub Maksymilian Fober) is used for blue-noise
 #define FRAME_GATHER_COUNT 1
 #endif
 
-#ifndef USE_LAUNCHPAD
-#define USE_LAUNCHPAD 1
+#ifndef PROVIDE_RETAINED_VELOCITY
+#define PROVIDE_RETAINED_VELOCITY 1
 #endif
 
 #define IS_MULTI_FRAME FRAME_GATHER_COUNT > 1
@@ -42,22 +48,21 @@ uniform float Amount<
 	ui_min = 0; ui_max = 2.25;
 > = 2;
 
-#if USE_LAUNCHPAD
-namespace Deferred 
-{
-	texture MotionVectorsTex { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
-}
-sampler sMotionVectorTex { Texture = Deferred::MotionVectorsTex; };
-#else
-texture texMotionVectors { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
-sampler sMotionVectorTex { Texture = texMotionVectors; };
+#define __DEFAULT_VELOCITY_TEXTURE LaunchPad_Old()
+#define __VELOCITY_SAMPLER(texture) sMotionVectorTex { Texture = texture; }
+#include "VelocitySelector.fxh"
+
+texture texOutput { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA16F; MipLevels = 1; };
+sampler sOutput { Texture = texOutput; };
+
+#if PROVIDE_RETAINED_VELOCITY
+texture texRetainedVelocityGather { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
+sampler sRetainedVelocityGather { Texture = texRetainedVelocityGather; };
+texture texRetainedVelocity { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
 #endif
 
-texture texOutput { Width = BUFFER_WIDTH;   Height = BUFFER_HEIGHT;   Format = RGBA16F; MipLevels = 1; };
-sampler sOutput   { Texture = texOutput;   };
-
-texture texPresent { Width = BUFFER_WIDTH;   Height = BUFFER_HEIGHT;   Format = RGBA8; MipLevels = 1; };
-sampler sPresent   { Texture = texPresent;   };
+texture texPresent { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA8; MipLevels = 1; };
+sampler sPresent { Texture = texPresent; };
 
 #if FRAME_COUNTER_SOURCE
 texture1D texCounter { Width = 1; Format = R32I; MipLevels = 1; };
@@ -72,17 +77,6 @@ int framecount()
 #else
 	return rsFramecount % FRAME_GATHER_COUNT;
 #endif
-}
-
-[shader("vertex")]
-float4 mainVs(in uint id : SV_VertexID) : SV_Position
-{
-	const float2 vertexPos[3] = {
-		float2(-1f, 1f), // Top left
-		float2(-1f,-3f), // Bottom left
-		float2( 3f, 1f)  // Top right
-	};
-	return float4(vertexPos[id], 0f, 1f);
 }
 
 void getOutput(inout float3 output, float4 noiseIn, float2 uv, float2 pixelVel, int step)
@@ -103,21 +97,39 @@ void countCs(uint3 tid : SV_GroupThreadID)
 
 #endif
 
+#include "FullscreenTriangle.fxh"
+
 [shader("pixel")]
-float4 clearPs(float4 pixelPos : SV_Position) : SV_Target
-{
+void clearPs(
+	out float4 colorGather : SV_Target0
+#if PROVIDE_RETAINED_VELOCITY
+	, out float4 velocityGather : SV_Target1
+#endif
+) {
 	int frameRef = framecount();
 	if (frameRef != 0) discard;
-	return float4(0,0,0,1);
+	colorGather = float4(0,0,0,1);
+#if PROVIDE_RETAINED_VELOCITY
+	velocityGather = float4(0,0,0,0);
+#endif
 }
 
 [shader("pixel")]
-float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
-{
+void mainPs(
+	float4 pixelPos : SV_Position
+	, out float4 colorGather : SV_Target0
+#if PROVIDE_RETAINED_VELOCITY
+	, out float4 velocityGather : SV_Target1
+#endif
+) {
 	uint2 pixelCoord = uint2(pixelPos.xy);
 	
 	float2 uv = pixelPos.xy * float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
 	float2 vel = tex2Dfetch(sMotionVectorTex, pixelCoord).xy;
+
+#if PROVIDE_RETAINED_VELOCITY
+	velocityGather = float4(vel, 0, 0);
+#endif
 	
 	uint offset = uint(4f*tex2Dfetch(BlueNoise::BlueNoiseTexSmp, pixelCoord/DITHER_SIZE_TEX%DITHER_SIZE_TEX).r);
 	offset += rsFramecount;
@@ -136,21 +148,28 @@ float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
 	
 	if (all(pixelCoord == uint2(0,0)))
 	{
-		return float4(1,1,1,1);
+		colorGather = float4(1,1,1,1);
+		return;
 	}
 	
-	return float4(output, 1);
+	colorGather = float4(output, 1);
 }
 
 [shader("pixel")]
-float4 writePs(float4 pixelPos : SV_Position) : SV_Target
-{
+void writePs(
+	float4 pixelPos : SV_Position
+	, out float4 colorOutput : SV_Target0
+#if PROVIDE_RETAINED_VELOCITY
+	, out float4 velocityOutput : SV_Target1
+#endif
+) {
 	int frameRef = framecount();
 	if (frameRef != (FRAME_GATHER_COUNT - 1)) discard;
 	float counter = tex2Dfetch(sOutput, uint2(0,0)).r;
 	// if (counter < FRAME_GATHER_COUNT) discard;
 	uint2 pixelCoord = uint2(pixelPos.xy);
-	return float4(tex2Dfetch(sOutput, pixelCoord).rgb / counter, 1);
+	colorOutput = float4(tex2Dfetch(sOutput, pixelCoord).rgb / counter, 1);
+	velocityOutput = float4(tex2Dfetch(sRetainedVelocityGather, pixelCoord).rg, 0, 0);
 }
 
 [shader("pixel")]
@@ -171,6 +190,9 @@ technique FastMotionBlur
 	{
 		VertexShader = mainVs;
 		PixelShader = mainPs;
+#if PROVIDE_RETAINED_VELOCITY
+		RenderTarget1 = texRetainedVelocity;
+#endif
 	}
 #else
 #if FRAME_COUNTER_SOURCE
@@ -186,7 +208,10 @@ technique FastMotionBlur
 	{
 		VertexShader = mainVs;
 		PixelShader = clearPs;
-		RenderTarget = texOutput;
+		RenderTarget0 = texOutput;
+#if PROVIDE_RETAINED_VELOCITY
+		RenderTarget1 = texRetainedVelocityGather;
+#endif
 		ClearRenderTargets = false;
 		GenerateMipMaps = false;
 	}
@@ -194,7 +219,10 @@ technique FastMotionBlur
 	{
 		VertexShader = mainVs;
 		PixelShader = mainPs;
-		RenderTarget = texOutput;
+		RenderTarget0 = texOutput;
+#if PROVIDE_RETAINED_VELOCITY
+		RenderTarget1 = texRetainedVelocityGather;
+#endif
 		ClearRenderTargets = false;
 		GenerateMipMaps = false;
 		BlendEnable = true;
@@ -208,7 +236,10 @@ technique FastMotionBlur
 		PixelShader = writePs;
 		ClearRenderTargets = false;
 		GenerateMipMaps = false;
-		RenderTarget = texPresent;
+		RenderTarget0 = texPresent;
+#if PROVIDE_RETAINED_VELOCITY
+		RenderTarget1 = texRetainedVelocity;
+#endif
 	}
 	pass PresentPass
 	{
