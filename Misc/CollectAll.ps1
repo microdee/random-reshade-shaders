@@ -4,6 +4,9 @@ mkdir $outpudDir -ErrorAction SilentlyContinue
 
 $shaderDirs = `
   "$PSScriptRoot\..\Shaders" `
+, "$PSScriptRoot\Private\ImmerseUltimate\Shaders" `
+, "$PSScriptRoot\iMMERSE\Shaders" `
+, "$PSScriptRoot\METEOR\Shaders" `
 , "$PSScriptRoot\Vanilla\Shaders" `
 , "$PSScriptRoot\AcerolaFX\Shaders" `
 , "$PSScriptRoot\AgXc\reshade\reshade-shaders\Shaders" `
@@ -14,23 +17,21 @@ $shaderDirs = `
 , "$PSScriptRoot\crt-royale-reshade\reshade-shaders\Shaders" `
 , "$PSScriptRoot\Daodan\Shaders" `
 , "$PSScriptRoot\fubax-shaders\Shaders" `
-, "$PSScriptRoot\iMMERSE\Shaders" `
 , "$PSScriptRoot\Insane-Shaders\Shaders" `
 , "$PSScriptRoot\Luluco250_FXShaders\Shaders" `
-, "$PSScriptRoot\METEOR\Shaders" `
 , "$PSScriptRoot\NiceGuy-Shaders\Shaders" `
 , "$PSScriptRoot\OtisFX\Shaders" `
-, "$PSScriptRoot\Private\ImmerseUltimate\Shaders" `
-, "$PSScriptRoot\qUINT_motionvectors" `
 , "$PSScriptRoot\prod80-ReShade-Repository\Shaders" `
 , "$PSScriptRoot\reshade-unity-shaders\Shaders" `
-, "$PSScriptRoot\ReshadeMotionEstimation" `
 , "$PSScriptRoot\RSRetroArch\Shaders" `
 , "$PSScriptRoot\SweetFX\Shaders" `
 , "$PSScriptRoot\YASSGI\Shaders"
 
 $textureDirs = `
   "$PSScriptRoot\..\Textures" `
+, "$PSScriptRoot\Private\ImmerseUltimate\Textures" `
+, "$PSScriptRoot\iMMERSE\Textures" `
+, "$PSScriptRoot\METEOR\Textures" `
 , "$PSScriptRoot\Vanilla\Textures" `
 , "$PSScriptRoot\AcerolaFX\Textures" `
 , "$PSScriptRoot\AgXc\reshade\reshade-shaders\Textures" `
@@ -39,12 +40,9 @@ $textureDirs = `
 , "$PSScriptRoot\CobraFX\Textures" `
 , "$PSScriptRoot\Daodan\Textures" `
 , "$PSScriptRoot\fubax-shaders\Textures" `
-, "$PSScriptRoot\iMMERSE\Textures" `
 , "$PSScriptRoot\Luluco250_FXShaders\Textures" `
-, "$PSScriptRoot\METEOR\Textures" `
 , "$PSScriptRoot\NiceGuy-Shaders\Textures" `
 , "$PSScriptRoot\OtisFX\Textures" `
-, "$PSScriptRoot\Private\ImmerseUltimate\Textures" `
 , "$PSScriptRoot\prod80-ReShade-Repository\Textures" `
 , "$PSScriptRoot\reshade-unity-shaders\Textures" `
 , "$PSScriptRoot\RSRetroArch\Textures" `
