@@ -36,11 +36,21 @@ uniform float Amount<
 	ui_min = 0; ui_max = 4;
 > = 0.3;
 
-uniform float Shape<
+uniform float Shape_Pointy<
 	ui_type = "slider";
 	ui_min = 0.1; ui_max = 10;
 > = 1;
 
+uniform float Shape_Shuffle<
+	ui_type = "slider";
+	ui_min = 0; ui_max = 1;
+> = 0;
+/*
+uniform float4 Temp<
+	ui_type = "slider";
+	ui_min = -1; ui_max = 1;
+> = 1;
+*/
 #define __DEFAULT_VELOCITY_TEXTURE LaunchPad_Old()
 #define __VELOCITY_SAMPLER(texture) sMotionVectorTex { Texture = texture; }
 #include "VelocitySelector.fxh"
@@ -50,6 +60,10 @@ uniform float Shape<
 
 #ifndef VELOCITY_BLUR
 #define VELOCITY_BLUR 4
+#endif
+
+#ifndef VELOCITY_BLUR_LOD
+#define VELOCITY_BLUR_LOD 2
 #endif
 
 #if VELOCITY_BLUR > 0
@@ -260,8 +274,8 @@ static const float KERNEL[KERNEL_SIZE] =
 
 #endif
 
-texture texVelocityBlur_H { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
-texture texVelocityBlur_V { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
+texture texVelocityBlur_H { Width = BUFFER_WIDTH / VELOCITY_BLUR_LOD; Height = BUFFER_HEIGHT / VELOCITY_BLUR_LOD; Format = RG16F; };
+texture texVelocityBlur_V { Width = BUFFER_WIDTH / VELOCITY_BLUR_LOD; Height = BUFFER_HEIGHT / VELOCITY_BLUR_LOD; Format = RG16F; };
 
 sampler sVelocityBlur_H { Texture = texVelocityBlur_H; };
 sampler sVelocityBlur_V { Texture = texVelocityBlur_V; };
@@ -271,14 +285,15 @@ sampler sVelocityBlur_V { Texture = texVelocityBlur_V; };
 [shader("pixel")]
 float4 blurPS_H(float4 pixelPos : SV_Position) : SV_Target
 {
-	uint2 pixelCoord = uint2(pixelPos.xy);
+	int2 pixelCoord = uint2(pixelPos.xy) * VELOCITY_BLUR_LOD;
 	float2 output = 0;
 
 	[unroll]
 	for (int i = 0; i<KERNEL_SIZE; i++)
 	{
 		float kernel = KERNEL[i];
-		output += tex2Dfetch(sMotionVectorTex, pixelCoord + uint2(i - PIXEL_START, 0)).xy * kernel;
+		int pixelOffset = i - PIXEL_START;
+		output += tex2Dfetch(sMotionVectorTex, pixelCoord + int2(pixelOffset * VELOCITY_BLUR_LOD, 0)).xy * kernel;
 	}
 	return float4(output, 0, 0);
 }
@@ -286,14 +301,15 @@ float4 blurPS_H(float4 pixelPos : SV_Position) : SV_Target
 [shader("pixel")]
 float4 blurPS_V(float4 pixelPos : SV_Position) : SV_Target
 {
-	uint2 pixelCoord = uint2(pixelPos.xy);
+	int2 pixelCoord = uint2(pixelPos.xy);
 	float2 output = 0;
 
 	[unroll]
 	for (int i = 0; i<KERNEL_SIZE; i++)
 	{
 		float kernel = KERNEL[i];
-		output += tex2Dfetch(sVelocityBlur_H, pixelCoord + uint2(0, i - PIXEL_START)).xy * kernel;
+		int pixelOffset = i - PIXEL_START;
+		output += tex2Dfetch(sVelocityBlur_H, pixelCoord + int2(0, pixelOffset)).xy * kernel;
 	}
 	return float4(output, 0, 0);
 }
@@ -308,13 +324,15 @@ float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
 	uint2 pixelCoord = uint2(pixelPos.xy);
 	float2 uv = pixelPos.xy * float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
 	float2 velocity = tex2Dlod(SMEAR_SAMPLER, float4(uv, 0, 0)).xy;
+	//float2 velocity = Temp.xy;
 	float speed = length(velocity);
 	if (speed < 0.001) discard;
 	float motionRad = atan2(velocity.y, velocity.x);
 	float2x2 rotator = float2x2(cos(motionRad), -sin(motionRad), sin(motionRad), cos(motionRad));
 	float2x2 rotatorInv = float2x2(cos(-motionRad), -sin(-motionRad), sin(-motionRad), cos(-motionRad));
 	uv = mul(uv, rotator);
-	float distortion = pow(abs(sin(uv.y * 3.14 * Frequency)), Shape) * Amount * speed;
+	float uvy = uv.y + cos(sin((uv.y * 0.765 + 0.2356) * Frequency) * 2.425 + 7.23) * Shape_Shuffle * 0.1;
+	float distortion = pow(abs(sin(uvy * 3.14 /*pi idk lol*/ * Frequency)), Shape_Pointy) * Amount * speed;
 	uv.x += distortion;
 	uv = mul(uv, rotatorInv);
 	
