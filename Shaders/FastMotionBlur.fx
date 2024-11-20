@@ -42,11 +42,19 @@ ColorAndDither.fxh by Fubaxiusz (Jakub Maksymilian Fober) is used for blue-noise
 #define IS_SINGLE_FRAME FRAME_GATHER_COUNT <= 1
 
 uniform uint rsFramecount < source = "framecount"; >;
+uniform float rsFrameTime < source = "frametime"; >;
 
-uniform float Amount<
+uniform float Amount <
 	ui_type = "slider";
 	ui_min = 0; ui_max = 2.25;
 > = 2;
+
+uniform float FrameTimeThreshold <
+	ui_type = "slider";
+	ui_tooltip = "Don't do framerate limitting if actual frame time is below given ms";
+	ui_min = 0; ui_max = 100;
+	ui_step = 1;
+> = 33;
 
 #define __DEFAULT_VELOCITY_TEXTURE LaunchPad_Old()
 #define __VELOCITY_SAMPLER(texture) sMotionVectorTex { Texture = texture; }
@@ -73,10 +81,11 @@ sampler1D<int> sCounter   { Texture = texCounter; SRGBTexture = false; };
 int framecount()
 {
 #if FRAME_COUNTER_SOURCE
-	return tex1Dfetch(sCounter, 0) % FRAME_GATHER_COUNT;
+	int count = tex1Dfetch(sCounter, 0) % FRAME_GATHER_COUNT;
 #else
-	return rsFramecount % FRAME_GATHER_COUNT;
+	int count = rsFramecount % FRAME_GATHER_COUNT;
 #endif
+	return rsFrameTime <= FrameTimeThreshold ? count : 0;
 }
 
 void getOutput(inout float3 output, float4 noiseIn, float2 uv, float2 pixelVel, int step)
@@ -107,7 +116,7 @@ void clearPs(
 #endif
 ) {
 	int frameRef = framecount();
-	if (frameRef != 0) discard;
+	if (rsFrameTime <= FrameTimeThreshold && frameRef != 0) discard;
 	colorGather = float4(0,0,0,1);
 #if PROVIDE_RETAINED_VELOCITY
 	velocityGather = float4(0,0,0,0);
@@ -164,12 +173,14 @@ void writePs(
 #endif
 ) {
 	int frameRef = framecount();
-	if (frameRef != (FRAME_GATHER_COUNT - 1)) discard;
+	if (rsFrameTime <= FrameTimeThreshold && frameRef != (FRAME_GATHER_COUNT - 1)) discard;
 	float counter = tex2Dfetch(sOutput, uint2(0,0)).r;
 	// if (counter < FRAME_GATHER_COUNT) discard;
 	uint2 pixelCoord = uint2(pixelPos.xy);
 	colorOutput = float4(tex2Dfetch(sOutput, pixelCoord).rgb / counter, 1);
+#if PROVIDE_RETAINED_VELOCITY
 	velocityOutput = float4(tex2Dfetch(sRetainedVelocityGather, pixelCoord).rg, 0, 0);
+#endif
 }
 
 [shader("pixel")]
