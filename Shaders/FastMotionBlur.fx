@@ -47,7 +47,7 @@ uniform float rsFrameTime < source = "frametime"; >;
 uniform float Amount <
 	ui_type = "slider";
 	ui_min = 0; ui_max = 2.25;
-> = 2;
+> = 1.333;
 
 uniform float FrameTimeThreshold <
 	ui_type = "slider";
@@ -56,7 +56,7 @@ uniform float FrameTimeThreshold <
 	ui_step = 1;
 > = 33;
 
-#define __DEFAULT_VELOCITY_TEXTURE LaunchPad_Old()
+#define __DEFAULT_VELOCITY_TEXTURE LaunchPad()
 #define __VELOCITY_SAMPLER(texture) sMotionVectorTex { Texture = texture; }
 #include "VelocitySelector.fxh"
 
@@ -69,7 +69,7 @@ sampler sRetainedVelocityGather { Texture = texRetainedVelocityGather; };
 texture texRetainedVelocity { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
 #endif
 
-texture texPresent { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA8; MipLevels = 1; };
+texture texPresent { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA16F; MipLevels = 1; };
 sampler sPresent { Texture = texPresent; };
 
 #if FRAME_COUNTER_SOURCE
@@ -91,7 +91,7 @@ int framecount()
 void getOutput(inout float3 output, float4 noiseIn, float2 uv, float2 pixelVel, int step)
 {
 	float noise = noiseIn[step%4u] - 0.5;
-	output += saturate(tex2Dlod(ReShade::BackBuffer, float4(uv - pixelVel * noise * Amount, 0, 0)).rgb) / MB_PASSES;
+	output += tex2Dlod(ReShade::BackBuffer, float4(uv - pixelVel * noise * Amount, 0, 0)).rgb / MB_PASSES;
 }
 
 #if FRAME_COUNTER_SOURCE

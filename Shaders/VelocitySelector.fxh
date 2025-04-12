@@ -32,7 +32,7 @@ REFERRER(Declare, VELOCITY_TEXTURE)
 #endif
 
 #ifndef __DEFAULT_VELOCITY_TEXTURE
-#define __DEFAULT_VELOCITY_TEXTURE LaunchPad_Old()
+#define __DEFAULT_VELOCITY_TEXTURE LaunchPad()
 #endif
 
 #ifndef VELOCITY_TEXTURE

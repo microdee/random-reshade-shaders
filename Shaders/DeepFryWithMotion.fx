@@ -74,9 +74,9 @@ texture Image1 {Width = IMAGE_WIDTH; Height = IMAGE_HEIGHT; Format = RGBA16f;};
 sampler sImage0 {Texture = Image0;};
 sampler sImage1 {Texture = Image1;};
 
-texture texMotionVectors { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
-sampler sMotionVectorTex { Texture = texMotionVectors; };
-
+#define __DEFAULT_VELOCITY_TEXTURE LaunchPad()
+#define __VELOCITY_SAMPLER(texture) sMotionVectorTex { Texture = texture; }
+#include "VelocitySelector.fxh"
 
 // Vertex shader generating a triangle covering the entire screen
 void PostProcessVS(in uint id : SV_VertexID, out float4 position : SV_Position, out float2 texcoord : TEXCOORD)

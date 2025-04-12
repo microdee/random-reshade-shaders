@@ -51,7 +51,7 @@ uniform float4 Temp<
 	ui_min = -1; ui_max = 1;
 > = 1;
 */
-#define __DEFAULT_VELOCITY_TEXTURE LaunchPad_Old()
+#define __DEFAULT_VELOCITY_TEXTURE LaunchPad()
 #define __VELOCITY_SAMPLER(texture) sMotionVectorTex { Texture = texture; }
 #include "VelocitySelector.fxh"
 
