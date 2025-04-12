@@ -14,7 +14,7 @@ do whatever you want, i don't care
 #define BLEND_ID 1
 
 #if !defined(REUSE_TARGET)
-#define REUSE_TARGET 1
+#define REUSE_TARGET 0
 #endif
 
 #ifndef BLEND_TEXTURE_NAME
@@ -22,8 +22,7 @@ do whatever you want, i don't care
 #if REUSE_TARGET
 #define BLEND_TEXTURE_NAME BlendTex_0
 #else
-#define __BLEND_TEXTURE_NAME(id) BlendTex_##id
-#define BLEND_TEXTURE_NAME __BLEND_TEXTURE_NAME(BLEND_ID)
+#define BLEND_TEXTURE_NAME BlendTex_1
 #endif
 #endif
 
@@ -57,9 +56,19 @@ uniform float Mix<
 	ui_min = 0; ui_max = 1;
 > = 0.5;
 
+uniform bool ClampIn <
+	ui_type = "checkbox";
+	ui_label = "Clamp Input";
+> = false;
+
+uniform bool ClampOut <
+	ui_type = "checkbox";
+	ui_label = "Clamp Output";
+> = false;
+
 namespace BlendPrevious
 {
-	texture BLEND_TEXTURE_NAME { Width = BUFFER_WIDTH;   Height = BUFFER_HEIGHT;   Format = RGBA8; MipLevels = 1; };
+	texture BLEND_TEXTURE_NAME { Width = BUFFER_WIDTH;   Height = BUFFER_HEIGHT;   Format = RGBA16F; MipLevels = 1; };
 	sampler Sampler { Texture = BLEND_TEXTURE_NAME; };
 }
 
@@ -76,13 +85,16 @@ float4 VS(in uint id : SV_VertexID) : SV_Position
 float4 PS_Write(float4 pixelPos : SV_Position) : SV_Target
 {
 	uint2 pixelCoord = uint2(pixelPos.xy);
-	return tex2Dfetch(ReShade::BackBuffer, pixelCoord);
+	float4 result = tex2Dfetch(ReShade::BackBuffer, pixelCoord);
+	result = lerp(result, saturate(result), ClampIn);
+	return result;
 }
 
 float4 BlendWithMiddle(float4 left, float4 right, float4 middle, float alpha)
 {
 	float4 result = lerp(left, middle, saturate(alpha * 2));
-	return lerp(result, right, saturate(alpha * 2-1));
+	result = lerp(result, right, saturate(alpha * 2-1));
+	return lerp(result, saturate(result), ClampOut);
 }
 
 float4 PS_Blend(float4 pixelPos : SV_Position) : SV_Target
@@ -159,7 +171,7 @@ float4 PS_Blend(float4 pixelPos : SV_Position) : SV_Target
 		float4 middle = float4(lerp(max(modf(left + ff, ip), left), right, ff).rgb, 1);
 		return BlendWithMiddle(left, right, saturate(middle), ff);
 	}
-	return left;
+	return lerp(left, saturate(left), ClampOut);
 }
 
 technique BlendPrevious_Write_1
