@@ -26,30 +26,45 @@ artificially lowered framerate.
 
 uniform uint rsFramecount < source = "framecount"; >;
 
-uniform float Frequency<
+uniform float Frequency <
 	ui_type = "slider";
 	ui_min = 6; ui_max = 100;
-> = 20;
+> = 21;
 
-uniform float Amount<
+uniform float Amount <
 	ui_type = "slider";
-	ui_min = 0; ui_max = 4;
-> = 0.3;
+	ui_min = 0; ui_max = 1;
+> = 0.063;
 
-uniform float Shape_Pointy<
+uniform float Response <
+	ui_type = "slider";
+	ui_min = 0.1; ui_max = 2;
+> = 0.525;
+
+uniform float Threshold <
+	ui_type = "slider";
+	ui_min = 0; ui_max = 0.05;
+> = 0.0065;
+
+uniform float Shape_Pointy <
 	ui_type = "slider";
 	ui_min = 0.1; ui_max = 10;
-> = 1;
+> = 9;
 
-uniform float Shape_Shuffle<
+uniform float Shape_Shuffle <
 	ui_type = "slider";
 	ui_min = 0; ui_max = 1;
-> = 0;
+> = 0.75;
 
-uniform float Temporal<
+uniform float FadeFrames <
 	ui_type = "slider";
-	ui_min = 0; ui_max = 1;
-> = 0.8;
+	ui_min = 1; ui_max = 60;
+> = 1.25;
+
+uniform int FadePacing <
+	ui_type = "slider";
+	ui_min = 1; ui_max = 20;
+> = 4;
 /*
 uniform float4 Temp<
 	ui_type = "slider";
@@ -57,7 +72,7 @@ uniform float4 Temp<
 > = 1;
 */
 #define __DEFAULT_VELOCITY_TEXTURE LaunchPad()
-#define __VELOCITY_SAMPLER(texture) sMotionVectorTex { Texture = texture; }
+#define __VELOCITY_SAMPLER(texture) sMotionVectorTex { Texture = texture; AddressU = MIRROR; AddressV = MIRROR; }
 #include "VelocitySelector.fxh"
 
 #define VS_SHADER_NAME() mainVs
@@ -282,41 +297,57 @@ static const float KERNEL[KERNEL_SIZE] =
 texture texVelocityBlur_H { Width = BUFFER_WIDTH / VELOCITY_BLUR_LOD; Height = BUFFER_HEIGHT / VELOCITY_BLUR_LOD; Format = RG16F; };
 texture texVelocityBlur_V { Width = BUFFER_WIDTH / VELOCITY_BLUR_LOD; Height = BUFFER_HEIGHT / VELOCITY_BLUR_LOD; Format = RG16F; };
 
-sampler sVelocityBlur_H { Texture = texVelocityBlur_H; };
-sampler sVelocityBlur_V { Texture = texVelocityBlur_V; };
+sampler sVelocityBlur_H
+{
+	Texture = texVelocityBlur_H;
+	AddressU = MIRROR;
+	AddressV = MIRROR;
+};
+sampler sVelocityBlur_V
+{
+	Texture = texVelocityBlur_V;
+	AddressU = MIRROR;
+	AddressV = MIRROR;
+};
 
 #define SMEAR_SAMPLER sVelocityBlur_V
+
+void VelocityBlur(int i, sampler samp, float pxUnit, float2 uv, int axis, inout float2 output)
+{
+	float kernel = KERNEL[i];
+	float pixelOffset = float(i) - PIXEL_START;
+	uv[axis] += pixelOffset * pxUnit;
+	float2 vel = tex2Dlod(samp, float4(uv, 0, log2(VELOCITY_BLUR_LOD))).xy;
+	float2 normVel = length(vel) <= 0.00001 ? vel : normalize(vel);
+	output += max(0, length(vel) - Threshold) * (1 + Threshold) * normVel * kernel;
+}
 
 [shader("pixel")]
 float4 blurPS_H(float4 pixelPos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
 {
-	float pxu = ddx(uv.x);
+	float pxu = BUFFER_RCP_WIDTH * VELOCITY_BLUR_LOD;
 	float2 output = 0;
 
 	[unroll]
 	for (int i = 0; i<KERNEL_SIZE; i++)
 	{
-		float kernel = KERNEL[i];
-		float pixelOffset = i - PIXEL_START;
-		output += tex2Dlod(sMotionVectorTex, float4(uv.x + pixelOffset * pxu, uv.y, 0, log2(VELOCITY_BLUR_LOD))).xy * kernel;
+		VelocityBlur(i, sMotionVectorTex, pxu, uv, 0, output);
 	}
-	return float4(output, 0, 0);
+	return float4(output, 0, 1);
 }
 
 [shader("pixel")]
 float4 blurPS_V(float4 pixelPos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
 {
-	float pxv = ddx(uv.y);
+	float pxv = BUFFER_RCP_HEIGHT * VELOCITY_BLUR_LOD;
 	float2 output = 0;
 
 	[unroll]
 	for (int i = 0; i<KERNEL_SIZE; i++)
 	{
-		float kernel = KERNEL[i];
-		float pixelOffset = i - PIXEL_START;
-		output += tex2Dlod(sMotionVectorTex, float4(uv.x, uv.y + pixelOffset * pxv, 0, log2(VELOCITY_BLUR_LOD))).xy * kernel;
+		VelocityBlur(i, sVelocityBlur_H, pxv, uv, 1, output);
 	}
-	return float4(output, 0, 1 - Temporal);
+	return float4(output, 0, 1/FadeFrames * ((rsFramecount % FadePacing) == 0));
 }
 
 #else
@@ -337,6 +368,7 @@ float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
 	float2x2 rotatorInv = float2x2(cos(-motionRad), -sin(-motionRad), sin(-motionRad), cos(-motionRad));
 	uv = mul(uv, rotator);
 	float uvy = uv.y + cos(sin((uv.y * 0.765 + 0.2356) * Frequency) * 2.425 + 7.23) * Shape_Shuffle * 0.1;
+	speed = pow(speed, Response);
 	float distortion = pow(abs(sin(uvy * 3.14 /*pi idk lol*/ * Frequency)), Shape_Pointy) * -Amount * speed;
 	uv.x += distortion;
 	uv = mul(uv, rotatorInv);
