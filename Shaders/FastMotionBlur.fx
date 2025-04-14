@@ -66,7 +66,7 @@ sampler sOutput { Texture = texOutput; };
 #if PROVIDE_RETAINED_VELOCITY
 texture texRetainedVelocityGather { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
 sampler sRetainedVelocityGather { Texture = texRetainedVelocityGather; };
-texture texRetainedVelocity { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; };
+texture texRetainedVelocity { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RG16F; MipLevels = 4; };
 #endif
 
 texture texPresent { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA16F; MipLevels = 1; };

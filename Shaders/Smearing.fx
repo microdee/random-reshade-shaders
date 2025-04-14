@@ -45,6 +45,11 @@ uniform float Shape_Shuffle<
 	ui_type = "slider";
 	ui_min = 0; ui_max = 1;
 > = 0;
+
+uniform float Temporal<
+	ui_type = "slider";
+	ui_min = 0; ui_max = 1;
+> = 0.8;
 /*
 uniform float4 Temp<
 	ui_type = "slider";
@@ -283,35 +288,35 @@ sampler sVelocityBlur_V { Texture = texVelocityBlur_V; };
 #define SMEAR_SAMPLER sVelocityBlur_V
 
 [shader("pixel")]
-float4 blurPS_H(float4 pixelPos : SV_Position) : SV_Target
+float4 blurPS_H(float4 pixelPos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
 {
-	int2 pixelCoord = uint2(pixelPos.xy) * VELOCITY_BLUR_LOD;
+	float pxu = ddx(uv.x);
 	float2 output = 0;
 
 	[unroll]
 	for (int i = 0; i<KERNEL_SIZE; i++)
 	{
 		float kernel = KERNEL[i];
-		int pixelOffset = i - PIXEL_START;
-		output += tex2Dfetch(sMotionVectorTex, pixelCoord + int2(pixelOffset * VELOCITY_BLUR_LOD, 0)).xy * kernel;
+		float pixelOffset = i - PIXEL_START;
+		output += tex2Dlod(sMotionVectorTex, float4(uv.x + pixelOffset * pxu, uv.y, 0, log2(VELOCITY_BLUR_LOD))).xy * kernel;
 	}
 	return float4(output, 0, 0);
 }
 
 [shader("pixel")]
-float4 blurPS_V(float4 pixelPos : SV_Position) : SV_Target
+float4 blurPS_V(float4 pixelPos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
 {
-	int2 pixelCoord = uint2(pixelPos.xy);
+	float pxv = ddx(uv.y);
 	float2 output = 0;
 
 	[unroll]
 	for (int i = 0; i<KERNEL_SIZE; i++)
 	{
 		float kernel = KERNEL[i];
-		int pixelOffset = i - PIXEL_START;
-		output += tex2Dfetch(sVelocityBlur_H, pixelCoord + int2(0, pixelOffset)).xy * kernel;
+		float pixelOffset = i - PIXEL_START;
+		output += tex2Dlod(sMotionVectorTex, float4(uv.x, uv.y + pixelOffset * pxv, 0, log2(VELOCITY_BLUR_LOD))).xy * kernel;
 	}
-	return float4(output, 0, 0);
+	return float4(output, 0, 1 - Temporal);
 }
 
 #else
@@ -332,16 +337,17 @@ float4 mainPs(float4 pixelPos : SV_Position) : SV_Target
 	float2x2 rotatorInv = float2x2(cos(-motionRad), -sin(-motionRad), sin(-motionRad), cos(-motionRad));
 	uv = mul(uv, rotator);
 	float uvy = uv.y + cos(sin((uv.y * 0.765 + 0.2356) * Frequency) * 2.425 + 7.23) * Shape_Shuffle * 0.1;
-	float distortion = pow(abs(sin(uvy * 3.14 /*pi idk lol*/ * Frequency)), Shape_Pointy) * Amount * speed;
+	float distortion = pow(abs(sin(uvy * 3.14 /*pi idk lol*/ * Frequency)), Shape_Pointy) * -Amount * speed;
 	uv.x += distortion;
 	uv = mul(uv, rotatorInv);
 	
-	return saturate(tex2Dlod(ReShade::BackBuffer, float4(uv, 0, 0)));
+	//return lerp(saturate(tex2Dlod(ReShade::BackBuffer, float4(uv, 0, 0))), speed * 10, 0.666);
+	return tex2Dlod(ReShade::BackBuffer, float4(uv, 0, 0));
 }
 
 technique Smearing
 {
-#if VELOCITY_BLUR
+#if VELOCITY_BLUR > 0
 	pass BlurVel_H
 	{
 		VertexShader = mainVs;
@@ -353,6 +359,12 @@ technique Smearing
 		VertexShader = mainVs;
 		PixelShader = blurPS_V;
 		RenderTarget = texVelocityBlur_V;
+		
+        ClearRenderTargets = false;
+		BlendEnable = true;
+		BlendOp = ADD;
+		SrcBlend = SRCALPHA;
+		DestBlend = INVSRCALPHA;
 	}
 #endif
 	pass MainPass
