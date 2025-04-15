@@ -21,6 +21,14 @@ when using this with FastMotionBlur it's recommended to set USE_RETAUNED_VELOCIT
 artificially lowered framerate.
 */
 
+#define GAUSSIAN 0
+#define CHOOSE_FASTEST 1
+#define AVERAGE 2
+
+#ifndef VELOCITY_BLUR_MODE
+#define VELOCITY_BLUR_MODE AVERAGE
+#endif
+
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
 
@@ -312,42 +320,53 @@ sampler sVelocityBlur_V
 
 #define SMEAR_SAMPLER sVelocityBlur_V
 
-void VelocityBlur(int i, sampler samp, float pxUnit, float2 uv, int axis, inout float2 output)
+void VelocityBlur(int i, sampler samp, float pxUnit, float2 uv, int axis, inout float2 output, inout int total)
 {
-	float kernel = KERNEL[i];
 	float pixelOffset = float(i) - PIXEL_START;
 	uv[axis] += pixelOffset * pxUnit;
 	float2 vel = tex2Dlod(samp, float4(uv, 0, log2(VELOCITY_BLUR_LOD))).xy;
-	float2 normVel = length(vel) <= 0.00001 ? vel : normalize(vel);
-	output += max(0, length(vel) - Threshold) * (1 + Threshold) * normVel * kernel;
+	bool still = length(vel) <= 0.00001;
+	float2 normVel = still ? vel : normalize(vel);
+	vel = max(0, length(vel) - Threshold) * (1 + Threshold) * normVel;
+	
+#if VELOCITY_BLUR_MODE == GAUSSIAN
+	float kernel = KERNEL[i];
+	output += vel * kernel;
+#elif VELOCITY_BLUR_MODE == CHOOSE_FASTEST
+	output = lerp(output, vel, length(vel) > length(output));
+#elif VELOCITY_BLUR_MODE == AVERAGE
+	total -= still;
+	output += vel;
+#endif
+}
+
+float2 VelocityBlurGather(sampler samp, float pxUnit, float2 uv, int axis)
+{
+	float2 output = 0;
+	int total = KERNEL_SIZE;
+	[unroll]
+	for (int i = 0; i<KERNEL_SIZE; i++)
+	{
+		VelocityBlur(i, samp, pxUnit, uv, axis, output, total);
+	}
+#if VELOCITY_BLUR_MODE == AVERAGE
+	output /= lerp(total, 1, total == 0);
+#endif
+	return output;
 }
 
 [shader("pixel")]
 float4 blurPS_H(float4 pixelPos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
 {
 	float pxu = BUFFER_RCP_WIDTH * VELOCITY_BLUR_LOD;
-	float2 output = 0;
-
-	[unroll]
-	for (int i = 0; i<KERNEL_SIZE; i++)
-	{
-		VelocityBlur(i, sMotionVectorTex, pxu, uv, 0, output);
-	}
-	return float4(output, 0, 1);
+	return float4(VelocityBlurGather(sMotionVectorTex, pxu, uv, 0), 0, 1);
 }
 
 [shader("pixel")]
 float4 blurPS_V(float4 pixelPos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
 {
 	float pxv = BUFFER_RCP_HEIGHT * VELOCITY_BLUR_LOD;
-	float2 output = 0;
-
-	[unroll]
-	for (int i = 0; i<KERNEL_SIZE; i++)
-	{
-		VelocityBlur(i, sVelocityBlur_H, pxv, uv, 1, output);
-	}
-	return float4(output, 0, 1/FadeFrames * ((rsFramecount % FadePacing) == 0));
+	return float4(VelocityBlurGather(sVelocityBlur_H, pxv, uv, 1), 0, 1/FadeFrames * ((rsFramecount % FadePacing) == 0));
 }
 
 #else
