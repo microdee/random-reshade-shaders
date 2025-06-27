@@ -25,7 +25,8 @@ $shaderDirs = `
 , "$PSScriptRoot\reshade-unity-shaders\Shaders" `
 , "$PSScriptRoot\RSRetroArch\Shaders" `
 , "$PSScriptRoot\SweetFX\Shaders" `
-, "$PSScriptRoot\YASSGI\Shaders"
+, "$PSScriptRoot\YASSGI\Shaders" `
+, "$PSScriptRoot\Private\AmbientLight\Shaders"
 
 $textureDirs = `
   "$PSScriptRoot\..\Textures" `
@@ -47,7 +48,8 @@ $textureDirs = `
 , "$PSScriptRoot\reshade-unity-shaders\Textures" `
 , "$PSScriptRoot\RSRetroArch\Textures" `
 , "$PSScriptRoot\SweetFX\Textures" `
-, "$PSScriptRoot\YASSGI\Textures"
+, "$PSScriptRoot\YASSGI\Textures" `
+, "$PSScriptRoot\Private\AmbientLight\Textures"
 
 function Merge-Links {
     param (
