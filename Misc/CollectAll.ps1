@@ -27,6 +27,7 @@ $shaderDirs = `
 , "$PSScriptRoot\SweetFX\Shaders" `
 , "$PSScriptRoot\YASSGI\Shaders" `
 , "$PSScriptRoot\Private\AmbientLight\Shaders"
+, "$PSScriptRoot\Private\REST"
 
 $textureDirs = `
   "$PSScriptRoot\..\Textures" `
