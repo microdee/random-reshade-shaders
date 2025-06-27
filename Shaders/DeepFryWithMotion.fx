@@ -74,7 +74,7 @@ texture Image1 {Width = IMAGE_WIDTH; Height = IMAGE_HEIGHT; Format = RGBA16f;};
 sampler sImage0 {Texture = Image0;};
 sampler sImage1 {Texture = Image1;};
 
-#define __DEFAULT_VELOCITY_TEXTURE LaunchPad()
+#define __DEFAULT_VELOCITY_TEXTURE LaunchPad_Old()
 #define __VELOCITY_SAMPLER(texture) sMotionVectorTex { Texture = texture; }
 #include "VelocitySelector.fxh"
 
