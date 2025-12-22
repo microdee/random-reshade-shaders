@@ -56,6 +56,11 @@ uniform float Mix<
 	ui_min = 0; ui_max = 1;
 > = 0.5;
 
+uniform float Offset<
+	ui_type = "slider";
+	ui_min = 0; ui_max = 1;
+> = 0;
+
 uniform bool ClampIn <
 	ui_type = "checkbox";
 	ui_label = "Clamp Input";
@@ -85,7 +90,7 @@ float4 VS(in uint id : SV_VertexID) : SV_Position
 float4 PS_Write(float4 pixelPos : SV_Position) : SV_Target
 {
 	uint2 pixelCoord = uint2(pixelPos.xy);
-	float4 result = tex2Dfetch(ReShade::BackBuffer, pixelCoord);
+	float4 result = max(tex2Dfetch(ReShade::BackBuffer, pixelCoord) - float4(Offset.xxx, 0), 0);
 	result = lerp(result, saturate(result), ClampIn);
 	return result;
 }
