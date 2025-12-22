@@ -5,7 +5,6 @@ mkdir $outpudDir -ErrorAction SilentlyContinue
 $shaderDirs = `
   "$PSScriptRoot\..\Shaders" `
 , "$PSScriptRoot\Private\ImmerseUltimate\Shaders" `
-, "$PSScriptRoot\iMMERSE\Shaders" `
 , "$PSScriptRoot\METEOR\Shaders" `
 , "$PSScriptRoot\Vanilla\Shaders" `
 , "$PSScriptRoot\AcerolaFX\Shaders" `
@@ -32,7 +31,6 @@ $shaderDirs = `
 $textureDirs = `
   "$PSScriptRoot\..\Textures" `
 , "$PSScriptRoot\Private\ImmerseUltimate\Textures" `
-, "$PSScriptRoot\iMMERSE\Textures" `
 , "$PSScriptRoot\METEOR\Textures" `
 , "$PSScriptRoot\Vanilla\Textures" `
 , "$PSScriptRoot\AcerolaFX\Textures" `
