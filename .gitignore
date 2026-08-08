@@ -1,2 +1,6 @@
 reshade-shaders/
 Misc/Private/
+Misc/.nuke/temp/
+Misc/.idea
+Misc/RrsTasks/bin/
+Misc/RrsTasks/obj/
