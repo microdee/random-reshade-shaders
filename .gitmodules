@@ -32,8 +32,8 @@
 	branch = master
 [submodule "Misc/fubax-shaders"]
 	path = Misc/fubax-shaders
-	url = https://github.com/Fubaxiusz/fubax-shaders.git
-	branch = master
+	url = https://github.com/microdee/fubax-shaders.git
+	branch = microdee-stuff
 [submodule "Misc/Insane-Shaders"]
 	path = Misc/Insane-Shaders
 	url = https://github.com/LordOfLunacy/Insane-Shaders.git
@@ -80,8 +80,8 @@
 	branch = main
 [submodule "Misc/iMMERSE"]
 	path = Misc/iMMERSE
-	url = https://github.com/microdee/iMMERSE.git
-	branch = microdee/restore-previous-launchpad
+	url = https://github.com/martymcmodding/iMMERSE.git
+	branch = main
 [submodule "Misc/AgXc"]
 	path = Misc/AgXc
 	url = https://github.com/MrLixm/AgXc.git
