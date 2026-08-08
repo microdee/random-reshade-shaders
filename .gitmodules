@@ -1,96 +1,96 @@
-[submodule "Misc/Vanilla"]
-	path = Misc/Vanilla
+[submodule "Misc/Public/Submodules/Vanilla"]
+	path = Misc/Public/Submodules/Vanilla
 	url = https://github.com/crosire/reshade-shaders.git
 	branch = slim
-[submodule "Misc/SweetFX"]
-	path = Misc/SweetFX
+[submodule "Misc/Public/Submodules/SweetFX"]
+	path = Misc/Public/Submodules/SweetFX
 	url = https://github.com/CeeJayDK/SweetFX.git
 	branch = master
-[submodule "Misc/qUINT_master"]
-	path = Misc/qUINT_master
+[submodule "Misc/Public/Submodules/qUINT_master"]
+	path = Misc/Public/Submodules/qUINT_master
 	url = https://github.com/martymcmodding/qUINT.git
 	branch = master
-[submodule "Misc/prod80-ReShade-Repository"]
-	path = Misc/prod80-ReShade-Repository
+[submodule "Misc/Public/Submodules/prod80-ReShade-Repository"]
+	path = Misc/Public/Submodules/prod80-ReShade-Repository
 	url = https://github.com/prod80/prod80-ReShade-Repository.git
 	branch = master
-[submodule "Misc/AstrayFX"]
-	path = Misc/AstrayFX
+[submodule "Misc/Public/Submodules/AstrayFX"]
+	path = Misc/Public/Submodules/AstrayFX
 	url = https://github.com/BlueSkyDefender/AstrayFX.git
 	branch = master
-[submodule "Misc/OtisFX"]
-	path = Misc/OtisFX
+[submodule "Misc/Public/Submodules/OtisFX"]
+	path = Misc/Public/Submodules/OtisFX
 	url = https://github.com/FransBouma/OtisFX.git
 	branch = master
-[submodule "Misc/brussell1"]
-	path = Misc/brussell1
+[submodule "Misc/Public/Submodules/brussell1"]
+	path = Misc/Public/Submodules/brussell1
 	url = https://github.com/brussell1/Shaders.git
 	branch = master
-[submodule "Misc/Daodan"]
-	path = Misc/Daodan
+[submodule "Misc/Public/Submodules/Daodan"]
+	path = Misc/Public/Submodules/Daodan
 	url = https://github.com/Daodan317081/reshade-shaders.git
 	branch = master
-[submodule "Misc/fubax-shaders"]
-	path = Misc/fubax-shaders
+[submodule "Misc/Public/Submodules/fubax-shaders"]
+	path = Misc/Public/Submodules/fubax-shaders
 	url = https://github.com/microdee/fubax-shaders.git
 	branch = microdee-stuff
-[submodule "Misc/Insane-Shaders"]
-	path = Misc/Insane-Shaders
+[submodule "Misc/Public/Submodules/Insane-Shaders"]
+	path = Misc/Public/Submodules/Insane-Shaders
 	url = https://github.com/LordOfLunacy/Insane-Shaders.git
 	branch = master
-[submodule "Misc/Luluco250_FXShaders"]
-	path = Misc/Luluco250_FXShaders
+[submodule "Misc/Public/Submodules/Luluco250_FXShaders"]
+	path = Misc/Public/Submodules/Luluco250_FXShaders
 	url = https://github.com/microdee/FXShaders.git
 	branch = microdee/lab-offset
-[submodule "Misc/RSRetroArch"]
-	path = Misc/RSRetroArch
+[submodule "Misc/Public/Submodules/RSRetroArch"]
+	path = Misc/Public/Submodules/RSRetroArch
 	url = https://github.com/Matsilagi/RSRetroArch.git
 	branch = main
-[submodule "Misc/CobraFX"]
-	path = Misc/CobraFX
+[submodule "Misc/Public/Submodules/CobraFX"]
+	path = Misc/Public/Submodules/CobraFX
 	url = https://github.com/LordKobra/CobraFX.git
 	branch = master
-[submodule "Misc/crt-royale-reshade"]
-	path = Misc/crt-royale-reshade
+[submodule "Misc/Public/Submodules/crt-royale-reshade"]
+	path = Misc/Public/Submodules/crt-royale-reshade
 	url = https://github.com/akgunter/crt-royale-reshade.git
 	branch = master
-[submodule "Misc/reshade-unity-shaders"]
-	path = Misc/reshade-unity-shaders
+[submodule "Misc/Public/Submodules/reshade-unity-shaders"]
+	path = Misc/Public/Submodules/reshade-unity-shaders
 	url = https://github.com/microdee/reshade-unity-shaders.git
 	branch = new-reshade-version-compatibility
-[submodule "Misc/NiceGuy-Shaders"]
-	path = Misc/NiceGuy-Shaders
+[submodule "Misc/Public/Submodules/NiceGuy-Shaders"]
+	path = Misc/Public/Submodules/NiceGuy-Shaders
 	url = https://github.com/microdee/NiceGuy-Shaders.git
 	branch = feature/launchpad-support
-[submodule "Misc/AcerolaFX"]
-	path = Misc/AcerolaFX
+[submodule "Misc/Public/Submodules/AcerolaFX"]
+	path = Misc/Public/Submodules/AcerolaFX
 	url = https://github.com/microdee/AcerolaFX.git
 	branch = main
-[submodule "Misc/ReshadeMotionEstimation"]
-	path = Misc/ReshadeMotionEstimation
+[submodule "Misc/Public/Submodules/ReshadeMotionEstimation"]
+	path = Misc/Public/Submodules/ReshadeMotionEstimation
 	url = https://github.com/JakobPCoder/ReshadeMotionEstimation.git
 	branch = main
-[submodule "Misc/qUINT_motionvectors"]
-	path = Misc/qUINT_motionvectors
+[submodule "Misc/Public/Submodules/qUINT_motionvectors"]
+	path = Misc/Public/Submodules/qUINT_motionvectors
 	url = https://gist.github.com/69c775f844124ec2c71c37541801c053.git
 	branch = main
-[submodule "Misc/YASSGI"]
-	path = Misc/YASSGI
+[submodule "Misc/Public/Submodules/YASSGI"]
+	path = Misc/Public/Submodules/YASSGI
 	url = https://github.com/Pentalimbed/YASSGI.git
 	branch = main
-[submodule "Misc/iMMERSE"]
-	path = Misc/iMMERSE
+[submodule "Misc/Public/Submodules/iMMERSE"]
+	path = Misc/Public/Submodules/iMMERSE
 	url = https://github.com/martymcmodding/iMMERSE.git
 	branch = main
-[submodule "Misc/AgXc"]
-	path = Misc/AgXc
+[submodule "Misc/Public/Submodules/AgXc"]
+	path = Misc/Public/Submodules/AgXc
 	url = https://github.com/MrLixm/AgXc.git
 	branch = main
-[submodule "Misc/METEOR"]
-	path = Misc/METEOR
+[submodule "Misc/Public/Submodules/METEOR"]
+	path = Misc/Public/Submodules/METEOR
 	url = https://github.com/martymcmodding/METEOR.git
 	branch = main
-[submodule "Misc/CShade"]
-	path = Misc/CShade
+[submodule "Misc/Public/Submodules/CShade"]
+	path = Misc/Public/Submodules/CShade
 	url = https://github.com/microdee/CShade.git
 	branch = microdee/init
